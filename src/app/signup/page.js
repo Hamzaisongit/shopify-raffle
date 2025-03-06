@@ -1,46 +1,46 @@
 "use client";
 import { supabase } from "@/lib/supabase";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-const [storeName, setStoreName] = useState("")
+  const [storeName, setStoreName] = useState("");
+  const [shop, setShop] = useState(""); // ✅ Store shop in state
 
-const shop = useSearchParams().get('shop')
+  const searchParams = useSearchParams(); // ✅ This must be inside a client component
   const router = useRouter();
+
+  useEffect(() => {
+    setShop(searchParams.get("shop") || ""); // ✅ Now handled inside useEffect
+  }, [searchParams]);
 
   async function handleSignup(e) {
     e.preventDefault();
     
-    const verifiedOwner = await verifyEmailIdentity(email)
-
-    if(!verifiedOwner){
-      alert('email verification failed')
-      return {status:'falied',msg:"Please ensure you signup with the same email as your shopify store"}
+    const verifiedOwner = await verifyEmailIdentity(email);
+    if (!verifiedOwner) {
+      alert("Email verification failed");
+      return { status: "failed", msg: "Please ensure you signup with the same email as your Shopify store" };
     }
 
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) alert(error.message);
     else {
       alert("Signup successful! Please check your email.");
-
       router.push("/login");
     }
   }
 
-  async function verifyEmailIdentity(enteredEmail){
-    const {data, error} = await supabase.from('store').select('*').eq('store_domain',shop).single()
+  async function verifyEmailIdentity(enteredEmail) {
+    const { data, error } = await supabase.from("store").select("*").eq("store_domain", shop).single();
 
-    if(error){
-      console.log('error while verifying email',error)
-      return false
+    if (error) {
+      console.log("Error while verifying email:", error);
+      return false;
     }
-    if(data.email == enteredEmail){
-      return true
-    }
-    return false
+    return data.email === enteredEmail;
   }
 
   return (
@@ -65,7 +65,7 @@ const shop = useSearchParams().get('shop')
         />
         <input
           type="text"
-          placeholder="store name"
+          placeholder="Store name"
           className="border p-2"
           value={storeName}
           onChange={(e) => setStoreName(e.target.value)}
