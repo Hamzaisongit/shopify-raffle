@@ -1,20 +1,15 @@
 "use client";
 import { supabase } from "@/lib/supabase";
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-export default function Signup() {
+export default function Signup({ searchParams }) {  // ✅ Accept searchParams as a prop
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [storeName, setStoreName] = useState("");
-  const [shop, setShop] = useState(""); // ✅ Store shop in state
-
-  const searchParams = useSearchParams(); // ✅ This must be inside a client component
   const router = useRouter();
 
-  useEffect(() => {
-    setShop(searchParams.get("shop") || ""); // ✅ Now handled inside useEffect
-  }, [searchParams]);
+  const shop = searchParams?.shop || "";  // ✅ Get shop from searchParams
 
   async function handleSignup(e) {
     e.preventDefault();
