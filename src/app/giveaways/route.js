@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 const SHOPIFY_SHARED_SECRET = process.env.SHOPIFY_API_SECRET; // Store this securely
 
 export async function GET(req) {
+console.log(req)
+
   const { searchParams } = new URL(req.url);
   const shop = searchParams.get("shop");
   const timestamp = searchParams.get("timestamp");
