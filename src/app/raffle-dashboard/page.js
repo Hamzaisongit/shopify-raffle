@@ -43,8 +43,8 @@ if(!user)router.push('/login')
         <div>{storeData.store_domain}</div>
         <br></br>
         <hr></hr>
-          <div>{eventsData?.length ? eventsData.map((event)=>{
-          return <div onClick={()=>{router.push(`/raffle-dashboard/create-edit-event/${event.event_id}`)}}>{event.title}</div>
+          <div>{eventsData?.length ? eventsData.map((event,index)=>{
+          return <div key={index} onClick={()=>{router.push(`/raffle-dashboard/create-edit-event/${event.event_id}`)}}>{event.title}</div>
         }) : <p>no events created yet</p>}</div>
 
         <button onClick={()=>{router.push('/raffle-dashboard/create-edit-event/new')}}>create</button>

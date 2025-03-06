@@ -23,18 +23,18 @@ if(strError || evntError) return alert(strError.message || evntError.message)
 
   }
 
-  async function fetchUserData() {
+  const fetchUserData = useCallback(async () => {
     const { data: { user }, error } = await supabase.auth.getUser();
     
-console.log(user,error)
-
+    console.log(user, error);
     setUser(user);
-    if(user){
-await getStoreAndEventData(user.email)
+
+    if (user) {
+      await getStoreAndEventData(user.email);
     }
 
     setLoading(false);
-  }
+  }, []);
 
   useEffect(() => {
 

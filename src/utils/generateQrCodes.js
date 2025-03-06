@@ -22,7 +22,7 @@ export default async function generateQrCodes(quantity, eventId, store_domain){
               console.log(qrLink)
                 return (
             <View style={{ padding: 10 }} key={index}>
-              <Image src={qrLink} style={{ width: 100, height: 100 }} />
+              <Image alt={'qr'} src={qrLink} style={{ width: 100, height: 100 }} />
             </View>)
               }
             )}

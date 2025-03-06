@@ -26,7 +26,7 @@ const {user,loading} = useUser()
     if(user){
       router.push('/raffle-dashboard')
     }
-  },[loading])
+  },[loading, user, router])
 
   return (loading ? <Loader2Icon></Loader2Icon> :
     <div className="flex flex-col items-center justify-center min-h-screen">
