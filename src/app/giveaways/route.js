@@ -7,6 +7,7 @@ const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET || '';
 
 // Handle GET requests to display event data
 export async function GET(request) {
+    console.log(request)
   try {
     // Validate the request is coming from Shopify
     const searchParams = request.nextUrl.searchParams;
