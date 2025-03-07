@@ -1,32 +1,14 @@
 import { NextResponse } from 'next/server';
 
-export async function GET(req) {
- console.log(req)
-    return new NextResponse(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Shopify Giveaway</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-          }
-          h1 {
-            color: #008060;
-          }
-          p {
-            color: #666;
-          }
-        </style>
-      </head>
-      <body>
-        <h1>🎉 Welcome to the Giveaway! 🎉</h1>
-        <p>Check back soon for exciting rewards.</p>
-      </body>
-    </html>
+export async function GET() {
+  return new NextResponse(`
+    {% layout none %}
+    <h1>🎉 Welcome, {{ shop.name }}! 🎉</h1>
+    <p>Your customer ID: {{ customer.id }}</p>
+    <p>Today's Date: {{ "now" | date: "%Y-%m-%d" }}</p>
   `, {
-    headers: { "Content-Type": "text/html" },
+    headers: {
+      'Content-Type': 'application/liquid',
+    },
   });
 }
