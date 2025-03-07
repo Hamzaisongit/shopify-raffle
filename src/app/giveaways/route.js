@@ -21,22 +21,15 @@ export async function GET(request) {
     Object.entries(queryWithoutSignature).filter(([_, value]) => value !== "")
   );
 
-  // 🔹 Debug Path Prefix Encoding Issues
-  if (query.path_prefix) {
-    console.log("\n🔹 path_prefix FROM Shopify:", query.path_prefix);
-    console.log("\n🔹 path_prefix ENCODED:", encodeURIComponent(query.path_prefix));
-    console.log("\n🔹 path_prefix DECODED:", decodeURIComponent(query.path_prefix));
-  }
-
   // 🔹 Shopify sorts parameters before hashing
   const sortedParams = Object.keys(filteredQuery).sort();
 
-  // 🔹 Construct the exact query string Shopify expects
+  // 🔹 Construct the exact query string Shopify expects (🔥 NO "&" between values!)
   const formattedParams = sortedParams
-    .map(key => `${key}=${filteredQuery[key]}`) // Shopify does NOT URL-encode values for hashing
-    .join("&");
+    .map(key => `${key}=${filteredQuery[key]}`)
+    .join("");  // 🔥 Shopify does NOT use "&" separators for App Proxy
 
-  console.log("\n🔹 Query String Used for HMAC:", formattedParams);
+  console.log("\n🔹 Corrected Query String for HMAC:", formattedParams);
 
   // 🔹 Compute HMAC Signature
   const expectedSignature = crypto
