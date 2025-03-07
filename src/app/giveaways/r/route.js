@@ -41,7 +41,7 @@ export async function GET(request) {
   console.log("🔹 Shopify Provided Signature:", query.signature);
 
   if (expectedSignature === query.signature) {
-    return new NextResponse.redirect('/giveaways');
+    return new NextResponse("<h1>✅ SIGNATURE MATCHES!</h1>", { headers: { "Content-Type": "text/html" } });
   } else {
     return new NextResponse("<h1>❌ SIGNATURE MISMATCH!</h1>", { status: 401 });
   }
