@@ -77,38 +77,39 @@ export async function GET(request) {
 
 // Validate Shopify App Proxy request signature
 function validateRequest(query) {
-  if (!SHOPIFY_API_SECRET) {
-    console.warn('SHOPIFY_API_SECRET is not set');
-    return false;
+    if (!SHOPIFY_API_SECRET) {
+      console.warn('SHOPIFY_API_SECRET is not set');
+      return false;
+    }
+  
+    const signature = query.signature;
+    if (!signature) {
+      return false; // No signature means request is invalid
+    }
+  
+    // Remove 'signature' key & empty values from the query before hashing
+    const queryWithoutSignature = Object.fromEntries(
+      Object.entries(query)
+        .filter(([key, value]) => key !== "signature" && value !== "") // 🔹 Exclude empty values
+    );
+  
+    // Shopify joins parameters with '&' (NOT just empty strings)
+    const formattedParams = Object.keys(queryWithoutSignature)
+      .map(key => `${key}=${decodeURIComponent(queryWithoutSignature[key])}`)
+      .join("&"); // 🔹 Use '&' instead of ''
+  
+    // Compute expected signature
+    const expectedSignature = crypto
+      .createHmac("sha256", SHOPIFY_API_SECRET)
+      .update(formattedParams)
+      .digest("hex");
+  
+    console.log("🔹 Corrected Expected Signature:", expectedSignature);
+    console.log("🔹 Received Signature from Shopify:", signature);
+  
+    return expectedSignature === signature;
   }
-
-  const signature = query.signature; // Shopify App Proxy uses 'signature', NOT 'hmac'
-  if (!signature) {
-    return false; // No signature means request is invalid
-  }
-
-  // Remove 'signature' key from the query before hashing
-  const queryWithoutSignature = { ...query };
-  delete queryWithoutSignature.signature;
-
-  // Convert query parameters to a format Shopify expects (no sorting)
-  const queryString = Object.keys(queryWithoutSignature)
-    .map(key => `${key}=${decodeURIComponent(queryWithoutSignature[key])}`)
-    .join('');
-
-  // Calculate expected HMAC signature
-  const expectedSignature = crypto
-    .createHmac('sha256', SHOPIFY_API_SECRET)
-    .update(queryString)
-    .digest('hex');
-
-  // For debugging
-  console.log("🔹 Expected Signature:", expectedSignature);
-  console.log("🔹 Received Signature:", signature);
-
-  return expectedSignature === signature;
-}
-
+  
 // Generate HTML to display the events
 function generateEventHtml(events) {
   return `
