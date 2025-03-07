@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
 // Your Shopify secret from environment variables
-const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET || '';
+const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET;
 
 // Handle GET requests to display event data
 export async function GET(request) {
@@ -13,15 +13,24 @@ export async function GET(request) {
     const searchParams = request.nextUrl.searchParams;
     const query = Object.fromEntries(searchParams.entries());
     
-    // Basic validation that the request is legitimate
+    // For debugging
+    console.log("🔹 Received Shopify Query:", query);
+    
+    // Check for required Shopify API secret
+    if (!SHOPIFY_API_SECRET) {
+      console.error('SHOPIFY_API_SECRET is not set in environment variables');
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+    
+    // Verify this is a valid Shopify store
     const shop = query.shop || '';
     if (!shop || !shop.includes('myshopify.com')) {
       return NextResponse.json({ error: 'Invalid shop parameter' }, { status: 400 });
     }
     
-    // Optional: Validate HMAC signature if security is important
-    if (query.hmac && !validateRequest(query)) {
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    // Validate the signature (mandatory for security)
+    if (!validateRequest(query)) {
+      return NextResponse.json({ error: 'Invalid request signature' }, { status: 401 });
     }
     
     // Get event data
@@ -66,30 +75,38 @@ export async function GET(request) {
   }
 }
 
-// Helper function to validate the request is from Shopify
+// Validate Shopify App Proxy request signature
 function validateRequest(query) {
   if (!SHOPIFY_API_SECRET) {
     console.warn('SHOPIFY_API_SECRET is not set');
     return false;
   }
-  
-  const hmac = query.hmac;
-  const queryWithoutHmac = { ...query };
-  delete queryWithoutHmac.hmac;
-  
-  // Sort and join the parameters
-  const sortedParams = Object.keys(queryWithoutHmac)
-    .sort()
-    .map(key => `${key}=${queryWithoutHmac[key]}`)
-    .join('&');
-  
-  // Calculate the HMAC
-  const calculatedHmac = crypto
+
+  const signature = query.signature; // Shopify App Proxy uses 'signature', NOT 'hmac'
+  if (!signature) {
+    return false; // No signature means request is invalid
+  }
+
+  // Remove 'signature' key from the query before hashing
+  const queryWithoutSignature = { ...query };
+  delete queryWithoutSignature.signature;
+
+  // Convert query parameters to a format Shopify expects (no sorting)
+  const queryString = Object.keys(queryWithoutSignature)
+    .map(key => `${key}=${decodeURIComponent(queryWithoutSignature[key])}`)
+    .join('');
+
+  // Calculate expected HMAC signature
+  const expectedSignature = crypto
     .createHmac('sha256', SHOPIFY_API_SECRET)
-    .update(sortedParams)
+    .update(queryString)
     .digest('hex');
-  
-  return hmac === calculatedHmac;
+
+  // For debugging
+  console.log("🔹 Expected Signature:", expectedSignature);
+  console.log("🔹 Received Signature:", signature);
+
+  return expectedSignature === signature;
 }
 
 // Generate HTML to display the events
@@ -99,6 +116,7 @@ function generateEventHtml(events) {
     <html>
       <head>
         <title>Upcoming Events</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
           body {
             font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif;
