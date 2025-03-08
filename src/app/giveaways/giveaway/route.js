@@ -18,7 +18,7 @@ export async function GET(request) {
 
   // 🔹 Remove empty values (Shopify ignores them in India)
   const filteredQuery = Object.fromEntries(
-    Object.entries(queryWithoutSignature).filter(([key, value]) => value !== "")
+    Object.entries(queryWithoutSignature).filter(([key, value]) => value !== "" && value !== undefined)
   );
 
   // 🔹 Shopify sorts parameters before hashing
