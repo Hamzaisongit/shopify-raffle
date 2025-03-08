@@ -18,7 +18,7 @@ export async function GET(request) {
 
   // 🔹 Remove empty values (Shopify ignores them in India)
   const filteredQuery = Object.fromEntries(
-    Object.entries(queryWithoutSignature).filter(([_, value]) => value !== "")
+    Object.entries(queryWithoutSignature).filter(([key, value]) => value !== "" && key !== 'qr')
   );
 
   // 🔹 Shopify sorts parameters before hashing
@@ -41,7 +41,10 @@ export async function GET(request) {
   console.log("🔹 Shopify Provided Signature:", query.signature);
 
   if (expectedSignature === query.signature) {
-    return new NextResponse("<h1>✅ SIGNATURE MATCHES!</h1>", { headers: { "Content-Type": "text/html" } });
+    return new NextResponse(`
+      <h1>✅ SIGNATURE MATCHES!</h1>
+      <p>QR-code = ${searchParams.get('qr')}</p>
+      `, { headers: { "Content-Type": "text/html" } });
   } else {
     return new NextResponse("<h1>❌ SIGNATURE MISMATCH!</h1>", { status: 401 });
   }
