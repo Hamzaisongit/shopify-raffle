@@ -11,7 +11,7 @@ export default async function generateQrCodes(quantity, eventId, store_domain){
   })
 
     const qrLinks = await Promise.all(qrInstanceLog.map((qrInstanceId)=>{
-      return QRCodeGenerator.toDataURL(`https://${'the-honey-shop-2.myshopify.com'}/giveaways?qr=${qrInstanceId}`)
+      return QRCodeGenerator.toDataURL(`https://${store_domain}/a/g/giveaway?qr=${qrInstanceId}`)
     }))
 
 
