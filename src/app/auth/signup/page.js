@@ -1,11 +1,9 @@
 "use client";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/context/AuthProvider";
 import { useRouter } from "next/navigation";
 
 export default function Signup() {
-  const { setUser } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,13 +15,17 @@ export default function Signup() {
     setLoading(true);
     setError("");
 
+    if(email !== process.env.NEXT_PUBLIC_ADMIN){
+      setLoading(false)
+      return setError("bad email")
+    }
+
     const { data, error } = await supabase.auth.signUp({ email, password });
 
     if (error) {
       setError(error.message);
     } else {
-      setUser(data.user);
-      router.push("/dashboard");
+      router.push("/auth/login")
     }
 
     setLoading(false);
@@ -60,7 +62,7 @@ export default function Signup() {
           </button>
         </form>
         <p className="mt-4 text-gray-600">
-          Already have an account? <a href="/login" className="text-blue-500">Login</a>
+          Already have an account? <a href="/auth/login" className="text-blue-500">Login</a>
         </p>
       </div>
     </div>

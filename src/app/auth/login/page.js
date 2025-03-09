@@ -1,11 +1,9 @@
 "use client";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/context/AuthProvider";
 import { useRouter } from "next/navigation";
 
 export default function Login() {
-  const { setUser } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,11 +20,10 @@ export default function Login() {
     if (error) {
       setError(error.message);
     } else {
-      setUser(data.user);
-      router.push("/dashboard");
+        router.push("/admin");
+        setLoading(false);
     }
 
-    setLoading(false);
   };
 
   return (
@@ -60,7 +57,7 @@ export default function Login() {
           </button>
         </form>
         <p className="mt-4 text-gray-600">
-          Don't have an account? <a href="/signup" className="text-blue-500">Sign Up</a>
+          If you haven't already signed-up.. <a href="/auth/signup" className="text-blue-500">Sign Up</a>
         </p>
       </div>
     </div>

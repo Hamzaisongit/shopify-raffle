@@ -1,6 +1,7 @@
 "use client";
 import { useQR } from "@/components/QRpage/QRProvider";
 import QRForm from "@/components/QRpage/QRForm";
+import generateQrCodes from "@/utils/generateQrCodes";
 
 export default function QRPage() {
   const { redeemAnytime, setRedeemAnytime, quantity, setQuantity } = useQR();
@@ -43,7 +44,11 @@ export default function QRPage() {
         />
       </div>
 
-      <button className="mt-6 w-full bg-green-600 text-white font-medium p-3 rounded-lg hover:bg-green-700 transition">
+      <button 
+      onClick={()=>{
+        generateQrCodes(quantity,"https://9131-2409-40c1-314f-4829-4e6-c500-9381-3c46.ngrok-free.app")
+      }}
+      className="mt-6 w-full bg-green-600 text-white font-medium p-3 rounded-lg hover:bg-green-700 transition">
         Generate QR Code
       </button>
     </div>
