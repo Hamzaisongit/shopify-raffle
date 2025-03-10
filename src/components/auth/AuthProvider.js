@@ -8,6 +8,7 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState([])
 
 const router = useRouter()
 
@@ -17,14 +18,24 @@ const router = useRouter()
       const { data: { user } } = await supabase.auth.getUser();
       if(!user){
         //display message
-        setTimeout(()=>{
-            router.push('/auth/login')
-        },2000)
+        router.push('/auth/login')
       }else{
-          setUser(user);
-          setLoading(false);
+        setUser(user);
+        await getUserEventsAndPrizes(user.email)
+        setLoading(false);
       }
     };
+
+    const getUserEventsAndPrizes = async (userEmail)=>{
+      const {data, error} = await supabase.from("event").select("*").eq("created_by",userEmail)
+
+      if(error){
+        console.log("while fetching events",error)
+        return;
+      }
+
+      setEvents(data)
+    }
 
     getUser();
 
@@ -46,7 +57,7 @@ const router = useRouter()
   );
 
   return (
-    <AuthContext.Provider value={{ user, setUser }}>
+    <AuthContext.Provider value={{ user, setUser, events, setEvents }}>
       {loading ? <div className="text-center p-4">Loading...</div> : children}
     </AuthContext.Provider>
   );

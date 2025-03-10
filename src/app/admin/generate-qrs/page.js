@@ -2,9 +2,11 @@
 import { useQR } from "@/components/QRpage/QRProvider";
 import QRForm from "@/components/QRpage/QRForm";
 import generateQrCodes from "@/utils/generateQrCodes";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export default function QRPage() {
-  const { redeemAnytime, setRedeemAnytime, quantity, setQuantity } = useQR();
+  const { redeemAnytime, setRedeemAnytime, quantity, setQuantity, endDate, endTime } = useQR();
+  const {user} = useAuth()
 
   const handleQuantityChange = (e) => {
     const value = Math.max(1, parseInt(e.target.value) || 1);
@@ -46,7 +48,8 @@ export default function QRPage() {
 
       <button 
       onClick={()=>{
-        generateQrCodes(quantity,"https://9131-2409-40c1-314f-4829-4e6-c500-9381-3c46.ngrok-free.app")
+        if(!redeemAnytime && ( !endDate || !endTime)) return alert("please enter correct values")
+        generateQrCodes(quantity,"9131-2409-40c1-314f-4829-4e6-c500-9381-3c46.ngrok-free.app", !redeemAnytime ? { endDate, endTime}:{}, user.email)
       }}
       className="mt-6 w-full bg-green-600 text-white font-medium p-3 rounded-lg hover:bg-green-700 transition">
         Generate QR Code

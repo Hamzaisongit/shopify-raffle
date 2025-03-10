@@ -15,10 +15,10 @@ export default function Signup() {
     setLoading(true);
     setError("");
 
-    if(email !== process.env.NEXT_PUBLIC_ADMIN){
-      setLoading(false)
-      return setError("bad email")
-    }
+    // if(email !== process.env.NEXT_PUBLIC_ADMIN){
+    //   setLoading(false)
+    //   return setError("bad email")
+    // }
 
     const { data, error } = await supabase.auth.signUp({ email, password });
 

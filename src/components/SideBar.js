@@ -17,11 +17,11 @@ export default function Sidebar() {
         </button>
       </header>
       <nav className="flex flex-col space-y-4">
-        <a href="/generate-qrs" className="p-3 rounded-lg hover:bg-gray-800">
-          Generate QRs
+        <a href="/admin" className="p-3 rounded-lg hover:bg-gray-800">
+          Admin
         </a>
-        <a href="/manage-events" className="p-3 rounded-lg hover:bg-gray-800">
-          Manage Events
+        <a href="/auth/login" className="p-3 rounded-lg hover:bg-gray-800">
+          Login
         </a>
       </nav>
     </div>

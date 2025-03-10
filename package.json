@@ -11,12 +11,19 @@
   "dependencies": {
     "@react-pdf/renderer": "^4.3.0",
     "@supabase/supabase-js": "^2.49.1",
+    "antd": "^5.24.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "cuid": "^3.0.0",
+    "dayjs": "^1.11.13",
     "lucide-react": "^0.479.0",
     "next": "15.2.0",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-simple-toasts": "^6.1.0",
+    "tailwind-merge": "^3.0.2",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

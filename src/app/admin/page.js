@@ -1,9 +1,11 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { QrCode, Users } from "lucide-react"; // Lucide icons for soft gray images
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export default function AdminPage() {
   const router = useRouter();
+  const {events} = useAuth()
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
