@@ -29,6 +29,9 @@ export default function CreateEventPage() {
   const [prizes, setPrizes] = useState([]);
   const [carouselRef, setCarouselRef] = useState(null);
 
+  const [eventForm] = Form.useForm()
+  const [messageApi,messageHolder] = message.useMessage()
+
   useEffect(() => {
     if (event_id === "new") return;
     const currentEvent = events.find((event) => event.event_id == event_id);
@@ -42,6 +45,11 @@ export default function CreateEventPage() {
         end_time: currentEvent.end_date ? dayjs(currentEvent.end_date).format("HH:mm") : "00:00",
       });
       loadPrizes();
+
+      eventForm.setFieldsValue({
+        title: currentEvent.title,
+        startDate: currentEvent.start_date ? dayjs(currentEvent.start_date) : null
+      })
     }
 
   }, [event_id, events]);
@@ -84,7 +92,7 @@ export default function CreateEventPage() {
     }
     // Remove the prize from the local state
     setPrizes((prev) => prev.filter((_, idx) => idx !== index));
-    message.success("Prize deleted successfully!");
+    messageApi.success("Prize deleted successfully!");
   }
 
   async function deleteEvent() {
@@ -106,7 +114,11 @@ export default function CreateEventPage() {
   }
 
   async function saveEvent() {
+try{
+    await eventForm.validateFields()
+
     setSaving(true);
+
     // Convert date and time to milliseconds
     const startTimestamp = eventDetails.start_date && eventDetails.start_time
       ? dayjs(`${eventDetails.start_date} ${eventDetails.start_time}`, "YYYY-MM-DD HH:mm").valueOf()
@@ -114,6 +126,17 @@ export default function CreateEventPage() {
     const endTimestamp = eventDetails.end_date && eventDetails.end_time
       ? dayjs(`${eventDetails.end_date} ${eventDetails.end_time}`, "YYYY-MM-DD HH:mm").valueOf()
       : null;
+
+    const overlappingEvent = events.find((event)=>{
+      return ((startTimestamp >= event.start_date && startTimestamp <= event.end_date) || (endTimestamp >= event.start_date && endTimestamp <= event.end_date))
+    })
+
+    if(overlappingEvent){
+      setSaving(false)
+
+      return alert(`overlaps with.. ${overlappingEvent.title}`)
+    }
+
     let eventPayload = {
       title: eventDetails.title,
       description: eventDetails.description,
@@ -152,6 +175,10 @@ export default function CreateEventPage() {
     setSaving(false);
     message.success("Event saved successfully!");
     router.push("/admin/manage-events"); // Navigate back to events list
+  }catch(error){
+    setSaving(false)
+    console.log('error in event form ',error)
+  }
   }
 
   async function loadPrizes() {
@@ -163,12 +190,13 @@ export default function CreateEventPage() {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
+    {messageHolder}
       <Row gutter={24} justify="center">
         {/* Left Section - Event Details */}
         <Col span={14}>
           <Card title={<Title level={4} >Event Details</Title>} bordered={false} className="shadow-lg">
-            <Form layout="vertical">
-              <Form.Item label="Event Title">
+            <Form form={eventForm} layout="vertical">
+              <Form.Item rules={[{ required: true, message: 'Event title is required!' }]} name={"title"} label="Event Title">
                 <Input name="title" placeholder="Enter event title" value={eventDetails.title} onChange={handleChange} className="placeholder-gray-600" />
               </Form.Item>
               <Form.Item label="Event Description">
@@ -177,22 +205,22 @@ export default function CreateEventPage() {
               {/* Date & Time Inputs */}
               <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item label="Start Date">
+                  <Form.Item name={"startDate"} rules={[{ required: true, message: 'required!' }]} label="Start Date">
                     <DatePicker style={{ width: "100%" }} value={eventDetails.start_date ? dayjs(eventDetails.start_date) : null} onChange={(date, dateString) => handleDateTimeChange(date, dateString, "start_date")} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item label="Start Time">
+                  <Form.Item name={"startTime"} rules={[{ required: true, message: 'required!' }]} label="Start Time">
                     <TimePicker style={{ width: "100%" }} format="HH:mm" value={eventDetails.start_time ? dayjs(eventDetails.start_time, "HH:mm") : null} onChange={(_, timeString) => handleDateTimeChange(null, timeString, "start_time")} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item label="End Date">
+                  <Form.Item name={"endDate"} rules={[{ required: true, message: 'required!' }]} label="End Date">
                     <DatePicker style={{ width: "100%" }} value={eventDetails.end_date ? dayjs(eventDetails.end_date) : null} onChange={(date, dateString) => handleDateTimeChange(date, dateString, "end_date")} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item label="End Time">
+                  <Form.Item name={"endTime"} rules={[{ required: true, message: 'required!' }]} label="End Time">
                     <TimePicker style={{ width: "100%" }} format="HH:mm" value={eventDetails.end_time ? dayjs(eventDetails.end_time, "HH:mm") : null} onChange={(_, timeString) => handleDateTimeChange(null, timeString, "end_time")} />
                   </Form.Item>
                 </Col>
@@ -262,7 +290,7 @@ export default function CreateEventPage() {
             </Button>
           )}
         </Space>
-        <Button type="primary" icon={<SaveOutlined />} onClick={saveEvent} loading={saving} className="ml-4">
+        <Button type="primary" htmlType="submit" icon={<SaveOutlined />} onClick={saveEvent} loading={saving} className="ml-4">
           Save Event
         </Button>
       </div>
