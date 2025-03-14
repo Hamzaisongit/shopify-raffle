@@ -10,6 +10,7 @@ export default function Giveaways() {
   const searchParams = useSearchParams()
   const [giveaway, setGiveaway] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [existingEntry, setExistingEntry] = useState(null)
   const [notDisplayedReason, setNotDisplayedReason] = useState(null)
   const [timeRemaining, setTimeRemaining] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
 
@@ -17,19 +18,32 @@ export default function Giveaways() {
     async function fetchGiveaway() {
       setLoading(true)
       const qr = searchParams.get("qr")
-      const { data: qrExistsInDb, error } = await supabase
+      const { data: qrExistsInDb, error: qrError } = await supabase
         .from('qr_instance')
         .select("*")
         .eq("instance_id", qr)
-      
-      if (!qrExistsInDb || qrExistsInDb.length === 0 || error) {
+
+      const { data: existingEntry, error: existingEntryError } = await supabase
+        .from("event_entry")
+        .select("*")
+        .eq("qr_code_id", qr)
+
+      if (existingEntry.length) {
         setLoading(false)
-        setNotDisplayedReason("error")
-        return
-      } else if (qrExistsInDb[0].end < Date.now()) {
-        setLoading(false)
-        setNotDisplayedReason("expired")
-        return
+        setExistingEntry(existingEntry[0])
+      }
+
+      if(qr){
+        console.log(qr)
+        if (!qrExistsInDb || qrExistsInDb.length === 0 || qrError || existingEntryError) {
+          setLoading(false)
+          setNotDisplayedReason("error")
+          return
+        } else if (qrExistsInDb[0].end < Date.now()) {
+          setLoading(false)
+          setNotDisplayedReason("expired")
+          return
+        }
       }
 
       const { data: activeEvent, error: err } = await supabase
@@ -39,7 +53,7 @@ export default function Giveaways() {
         .order('start_date', { ascending: false })
         .limit(1)
         .single()
-      
+
       if (err || !activeEvent) {
         setLoading(false)
         setNotDisplayedReason("noActiveEvent")
@@ -57,7 +71,7 @@ export default function Giveaways() {
         .select("*")
         .eq("event_id", activeEvent.event_id)
         .order("position", { ascending: true })
-      
+
       setLoading(false)
       setGiveaway({
         ...activeEvent,
@@ -75,36 +89,36 @@ export default function Giveaways() {
     // Function to calculate time remaining
     function calculateTimeRemaining() {
       const remaining = giveaway.end_date - Date.now()
-      
+
       if (remaining <= 0) {
         return { days: 0, hours: 0, minutes: 0, seconds: 0 }
       }
-      
+
       const days = Math.floor(remaining / (1000 * 60 * 60 * 24))
       const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
       const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60))
       const seconds = Math.floor((remaining % (1000 * 60)) / 1000)
-      
+
       return { days, hours, minutes, seconds }
     }
 
     // Update time immediately
     setTimeRemaining(calculateTimeRemaining())
-    
+
     // Set up interval to update time every second
     const timer = setInterval(() => {
       const newTimeRemaining = calculateTimeRemaining()
       setTimeRemaining(newTimeRemaining)
-      
+
       // If countdown is complete, clear the interval
-      if (newTimeRemaining.days === 0 && 
-          newTimeRemaining.hours === 0 && 
-          newTimeRemaining.minutes === 0 && 
-          newTimeRemaining.seconds === 0) {
+      if (newTimeRemaining.days === 0 &&
+        newTimeRemaining.hours === 0 &&
+        newTimeRemaining.minutes === 0 &&
+        newTimeRemaining.seconds === 0) {
         clearInterval(timer)
       }
     }, 1000)
-    
+
     // Clean up interval on component unmount
     return () => clearInterval(timer)
   }, [giveaway])
@@ -140,7 +154,7 @@ export default function Giveaways() {
               </div>
             </div>
             <h2 className="mt-4 text-2xl font-bold text-gray-800">
-              {notDisplayedReason === "error" && "Invalid QR Code"}
+              {notDisplayedReason === "error" && "Oops.. something went wrong, please make sure you have a valid QR Code!"}
               {notDisplayedReason === "expired" && "QR Code Expired"}
               {notDisplayedReason === "noActiveEvent" && "No Active Giveaway"}
             </h2>
@@ -149,12 +163,6 @@ export default function Giveaways() {
               {notDisplayedReason === "expired" && "This QR code has expired and is no longer valid."}
               {notDisplayedReason === "noActiveEvent" && "There are no active giveaways at this time. Please check back later."}
             </p>
-            <button 
-              className="mt-6 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-              onClick={() => window.location.href = '/'}
-            >
-              Return Home
-            </button>
           </div>
         </div>
       </div>
@@ -203,7 +211,7 @@ export default function Giveaways() {
           <div className="absolute bottom-20 left-1/5 w-8 h-8 bg-indigo-300 rotate-45 opacity-60"></div>
           <div className="absolute bottom-40 right-1/4 w-6 h-10 bg-red-400 -rotate-12 opacity-70"></div>
         </div>
-        
+
         <div className="max-w-md mx-auto p-6 relative">
           {/* Header */}
           <div className="text-center mb-6 pt-6">
@@ -214,7 +222,7 @@ export default function Giveaways() {
             <p className="text-indigo-200">
               {formatDate(giveaway.start_date)} - {formatDate(giveaway.end_date)}
             </p>
-            
+
             {/* Countdown Timer */}
             <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-lg p-4">
               <p className="text-sm mb-2">Time Remaining</p>
@@ -246,13 +254,13 @@ export default function Giveaways() {
               </div>
             </div>
           </div>
-          
+
           {/* Description */}
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-6">
             <h2 className="text-xl font-semibold mb-3">About This Giveaway</h2>
             <p className="text-indigo-100">{giveaway.description}</p>
           </div>
-          
+
           {/* Prizes */}
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-4">Awesome Prizes</h2>
@@ -262,8 +270,8 @@ export default function Giveaways() {
                   <div className="relative">
                     {prize.img_url ? (
                       <div className="relative h-48 w-full">
-                        <img 
-                          src={prize.img_url} 
+                        <img
+                          src={prize.img_url}
                           alt={prize.name}
                           className="absolute inset-0 w-full h-full object-cover"
                         />
@@ -287,13 +295,35 @@ export default function Giveaways() {
               ))}
             </div>
           </div>
-          
+
           {/* Entry Form */}
-          <GiveawayEntryForm 
-            eventId={giveaway.event_id} 
-            qr_code_id={searchParams.get("qr")}
-          />
-          
+          <div className="mb-6">
+            {!searchParams.get("qr") ? (
+              <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg shadow-lg text-center">
+                <p className="text-indigo-200">
+                  <span className="font-semibold text-white">Scan a valid QRcode to participate</span>
+                </p>
+              </div>
+            ) : (
+              existingEntry ? (
+                <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg shadow-lg text-center">
+                  <p className="text-indigo-200 mt-2">
+                    <span className="font-semibold text-white">{existingEntry.name}</span>, your participation has been successfully recorded.
+                  </p>
+                  <p className="text-indigo-300 mt-1">
+                    Please check your SMS for your <span className="font-semibold text-indigo-100">Participation-ID</span>.
+                  </p>
+                </div>
+              ) : (
+                <GiveawayEntryForm
+                  event={giveaway}
+                  qr_code_id={searchParams.get("qr")}
+                />
+              )
+            )}
+
+          </div>
+
           {/* Rules */}
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-8">
             <h2 className="text-xl font-semibold mb-3">Rules & Conditions</h2>
@@ -304,7 +334,7 @@ export default function Giveaways() {
               <li>Employees and their families are not eligible</li>
             </ul>
           </div>
-          
+
           {/* Footer */}
           <div className="text-center text-indigo-300 text-sm pb-8">
             <p>© 2025 {giveaway.title} Giveaway. All rights reserved.</p>

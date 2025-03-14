@@ -6,12 +6,8 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { Form, Input, Button, DatePicker, TimePicker, Card, Row, Col, Carousel, Image, Typography, Space, message, Spin, Divider } from "antd";
 import { PlusOutlined, DeleteOutlined, SaveOutlined, ArrowLeftOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import toast, { toastConfig } from "react-simple-toasts/./dist";
 const { Title, Text, Paragraph } = Typography;
 
-toastConfig({
-  theme:'dark'
-})
 
 export default function CreateEventPage() {
   const { user, events, setEvents } = useAuth();
@@ -75,7 +71,6 @@ export default function CreateEventPage() {
   }
 
   function addPrize() {
-    toast('Added')
     setPrizes((prev) => [...prev, { position: prizes.length + 1, name: "", description: "", img_url: "" }]);
     setTimeout(() => carouselRef?.goTo(prizes.length), 100);
   }
