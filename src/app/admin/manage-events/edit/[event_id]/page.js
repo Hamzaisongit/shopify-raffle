@@ -44,8 +44,13 @@ export default function CreateEventPage() {
 
       eventForm.setFieldsValue({
         title: currentEvent.title,
-        startDate: currentEvent.start_date ? dayjs(currentEvent.start_date) : null
-      })
+        description: currentEvent.description,
+        startDate: currentEvent.start_date ? dayjs(currentEvent.start_date) : null,
+        startTime: currentEvent.start_date ? dayjs(currentEvent.start_date) : null,
+        endDate: currentEvent.end_date ? dayjs(currentEvent.end_date) : null,
+        endTime: currentEvent.end_date ? dayjs(currentEvent.end_date) : null,
+      });
+      
     }
 
   }, [event_id, events]);
@@ -123,6 +128,7 @@ try{
       : null;
 
     const overlappingEvent = events.find((event)=>{
+      if(event.event_id == event_id) return;
       return ((startTimestamp >= event.start_date && startTimestamp <= event.end_date) || (endTimestamp >= event.start_date && endTimestamp <= event.end_date))
     })
 

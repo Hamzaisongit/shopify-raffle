@@ -34,7 +34,6 @@ export default function Giveaways() {
       }
 
       if(qr){
-        console.log(qr)
         if (!qrExistsInDb || qrExistsInDb.length === 0 || qrError || existingEntryError) {
           setLoading(false)
           setNotDisplayedReason("error")
